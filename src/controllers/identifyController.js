@@ -46,6 +46,38 @@ async function identifyContact(req, res) {
       c => c.id !== primaryContact.id
     );
 
+    // Check if multiple primary contacts exist
+const primaryContacts = existingContacts.filter(
+  c => c.linkPrecedence === "primary"
+);
+
+// Fetch all contacts linked to the primary contact
+const allLinkedContacts = await prisma.contact.findMany({
+  where: {
+    OR: [
+      { id: primaryContact.id },
+      { linkedId: primaryContact.id }
+    ]
+  },
+  orderBy: {
+    createdAt: "asc"
+  }
+});
+
+if (primaryContacts.length > 1) {
+  const oldestPrimary = primaryContacts[0];
+
+  for (let i = 1; i < primaryContacts.length; i++) {
+    await prisma.contact.update({
+      where: { id: primaryContacts[i].id },
+      data: {
+        linkPrecedence: "secondary",
+        linkedId: oldestPrimary.id
+      }
+    });
+  }
+}
+
     // Check if new info exists
     const emailExists = existingContacts.some(c => c.email === email);
     const phoneExists = existingContacts.some(c => c.phoneNumber === phoneNumber);
@@ -65,21 +97,25 @@ async function identifyContact(req, res) {
     }
 
     // Collect all emails and phones
-    const emails = new Set();
-    const phones = new Set();
+const emails = new Set();
+const phones = new Set();
+const secondaryIds = [];
 
-    [primaryContact, ...secondaryContacts].forEach(c => {
-      if (c.email) emails.add(c.email);
-      if (c.phoneNumber) phones.add(c.phoneNumber);
-    });
+allLinkedContacts.forEach(contact => {
+  if (contact.email) emails.add(contact.email);
+  if (contact.phoneNumber) phones.add(contact.phoneNumber);
+
+  if (contact.linkPrecedence === "secondary") {
+    secondaryIds.push(contact.id);
+  }
+});
 
     return res.status(200).json({
       contact: {
         primaryContactId: primaryContact.id,
         emails: Array.from(emails),
         phoneNumbers: Array.from(phones),
-        secondaryContactIds: secondaryContacts.map(c => c.id)
-      }
+secondaryContactIds: secondaryIds      }
     });
 
   } catch (error) {
