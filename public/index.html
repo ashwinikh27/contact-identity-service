@@ -101,7 +101,7 @@ async function identify() {
   responseBox.textContent = "Loading...";
 
   try {
-    const response = await fetch("/identify", {
+    const response = await fetch("https://contact-identity-service-133d.onrender.com/identify", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
