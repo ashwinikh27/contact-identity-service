@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bitespeed Identity Reconciliation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      width: 420px;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #2f80ed;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1c65c7;
+    }
+
+    .response-box {
+      margin-top: 20px;
+      background: #f1f1f1;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Contact Identity</h1>
+
+<label>Email</label>
+<input type="text" id="email" placeholder="Enter email">
+
+<label>Phone Number</label>
+<input type="text" id="phone" placeholder="Enter phone number">
+
+<button type="button" onclick="identify()">Identify</button>
+
+<div id="responseContainer" style="display:none;">
+  <h3>Response</h3>
+  <div class="response-box" id="response"></div>
+</div>
+
+</div>
+
+<script>
+async function identify() {
+
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value;
+
+  const responseBox = document.getElementById("response");
+
+  responseBox.textContent = "Loading...";
+
+  try {
+    const response = await fetch("/identify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: email || null,
+        phoneNumber: phone || null
+      })
+    });
+
+    const data = await response.json();
+
+    document.getElementById("responseContainer").style.display = "block";
+    responseBox.textContent = JSON.stringify(data, null, 2);
+
+  } catch (error) {
+    responseBox.textContent = "Error connecting to server.";
+  }
+}
+</script>

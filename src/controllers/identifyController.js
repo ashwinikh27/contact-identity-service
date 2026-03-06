@@ -82,19 +82,22 @@ if (primaryContacts.length > 1) {
     const emailExists = existingContacts.some(c => c.email === email);
     const phoneExists = existingContacts.some(c => c.phoneNumber === phoneNumber);
 
-    // Create secondary contact if new info
-    if (!emailExists || !phoneExists) {
-      const newSecondary = await prisma.contact.create({
-        data: {
-          email,
-          phoneNumber,
-          linkedId: primaryContact.id,
-          linkPrecedence: "secondary"
-        }
-      });
-
-      secondaryContacts.push(newSecondary);
+   // Create secondary contact only if NEW information is provided
+if ((email && !emailExists) || (phoneNumber && !phoneExists)) {
+  const newSecondary = await prisma.contact.create({
+    data: {
+      email,
+      phoneNumber,
+      linkedId: primaryContact.id,
+      linkPrecedence: "secondary"
     }
+  });
+
+  secondaryContacts.push(newSecondary);
+
+  // also add it to linked contacts so response includes it
+  allLinkedContacts.push(newSecondary);
+}
 
     // Collect all emails and phones
 const emails = new Set();
