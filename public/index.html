@@ -115,7 +115,20 @@ async function identify() {
     const data = await response.json();
 
     document.getElementById("responseContainer").style.display = "block";
-    responseBox.textContent = JSON.stringify(data, null, 2);
+    const contact = data.contact;
+
+responseBox.innerHTML = `
+Primary Contact ID: ${contact.primaryContactId}
+
+Emails:
+${contact.emails.join(", ")}
+
+Phone Numbers:
+${contact.phoneNumbers.join(", ")}
+
+Secondary Contact IDs:
+${contact.secondaryContactIds.length ? contact.secondaryContactIds.join(", ") : "None"}
+`;
 
   } catch (error) {
     responseBox.textContent = "Error connecting to server.";
